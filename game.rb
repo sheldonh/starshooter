@@ -18,7 +18,7 @@ end
 
 class Game < Gosu::Window
 
-  TOTAL_ASTEROIDS = 100
+  TOTAL_ASTEROIDS = 60
   INITIAL_ASTEROIDS = 10
 
   def initialize
