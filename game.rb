@@ -24,7 +24,7 @@ class Game < Gosu::Window
   def initialize
     @width = Screen::WIDTH
     @height = Screen::HEIGHT
-    super(@width, @height)
+    super(@width, @height, fullscreen: true)
     self.caption = "Starshooter"
     @stars = Array.new(20)  { Star.new(rand(@width), rand(@height), rand(10) + 1) }
     @extra_asteroids = Array.new(TOTAL_ASTEROIDS) { Asteroid.new(@width * 2 + rand(@width), rand(@height), rand(10) + 1) }
@@ -33,6 +33,9 @@ class Game < Gosu::Window
     @message = Gosu::Font.new(128)
     @help = Gosu::Font.new(32)
     @scoreboard = Gosu::Font.new(32, name: "courier")
+    @explosion = Gosu::Sample.new("assets/explosion.wav").tap { |x| x.play(0) }
+    @score_up = Gosu::Sample.new("assets/score-up.wav").tap { |x| x.play(0) }
+    @win = Gosu::Sample.new("assets/win.wav").tap { |x| x.play(0) }
     @paused = true
     @game_over = false
     @game_won = false
@@ -50,9 +53,12 @@ class Game < Gosu::Window
             @score += 1
             if @score % 10 == 0
               if @extra_asteroids.empty?
+                @score_up.play
+                @win.play
                 @game_won = true
                 break
               else
+                @score_up.play
                 @asteroids << @extra_asteroids.pop
               end
             end
@@ -60,6 +66,7 @@ class Game < Gosu::Window
             asteroid.warp(@width + rand(@width), rand(@height), rand(10) + 1)
           elsif @player.collide?(asteroid)
             @game_over = true
+            @explosion.play
             break
           end
         end
@@ -165,12 +172,15 @@ class Player
       @images[(@v_y <=> 0) + 1].draw(@x, @y, ZOrder::PLAYER)
     end
     if @exploding
-      @explosions[@exploding % 10].draw(@x - 40, @y - 40, ZOrder::EXPLOSION, 1.250, 1.250)
-      @exploding += 1
-      if @exploding % 10 > (@explosions.size - 1) / 2
-        @exploded = true
+      frame_speed = 3
+      frame = @exploding / frame_speed
+      if frame > @explosions.size - 1
+        @exploding = nil
+      else
+        @explosions[frame].draw(@x - 40, @y - 40, ZOrder::EXPLOSION, 1.250, 1.250)
+        @exploded = true if frame > (@explosions.size - 1) / 2
+        @exploding += 1
       end
-      @exploding = nil if @exploding > @explosions.size - 1
     end
   end
 
