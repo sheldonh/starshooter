@@ -33,40 +33,43 @@ class Game < Gosu::Window
     @message = Gosu::Font.new(128)
     @help = Gosu::Font.new(32)
     @scoreboard = Gosu::Font.new(32, name: "courier")
+    @paused = true
     @game_over = false
     @game_won = false
     @score = 0
   end
 
   def update
-    unless @game_over or @game_won
-      @player.update
-      @asteroids.each do |asteroid|
-        asteroid.update
-        if asteroid.x + asteroid.width < 0
-          asteroid.warp(@width + rand(@width), rand(@height), rand(10) + 1)
-          @score += 1
-          if @score % 10 == 0
-            if @extra_asteroids.empty?
-              @game_won = true
-              break
-            else
-              @asteroids << @extra_asteroids.pop
+    unless @paused
+      unless @game_over or @game_won
+        @player.update
+        @asteroids.each do |asteroid|
+          asteroid.update
+          if asteroid.x + asteroid.width < 0
+            asteroid.warp(@width + rand(@width), rand(@height), rand(10) + 1)
+            @score += 1
+            if @score % 10 == 0
+              if @extra_asteroids.empty?
+                @game_won = true
+                break
+              else
+                @asteroids << @extra_asteroids.pop
+              end
             end
+          elsif asteroid.y + asteroid.height < 0 or asteroid.y > @height
+            asteroid.warp(@width + rand(@width), rand(@height), rand(10) + 1)
+          elsif @player.collide?(asteroid)
+            @game_over = true
+            break
           end
-        elsif asteroid.y + asteroid.height < 0 or asteroid.y > @height
-          asteroid.warp(@width + rand(@width), rand(@height), rand(10) + 1)
-        elsif @player.collide?(asteroid)
-          @game_over = true
-          break
         end
       end
-    end
 
-    @stars.each do |star|
-      star.move
-      if star.x + star.width < 0
-        star.warp(@width, rand(@height), rand(10) + 1)
+      @stars.each do |star|
+        star.move
+        if star.x + star.width < 0
+          star.warp(@width, rand(@height), rand(10) + 1)
+        end
       end
     end
   end
@@ -76,7 +79,11 @@ class Game < Gosu::Window
     when Gosu::KB_ESCAPE
       close
     when Gosu::KB_SPACE
-      reset
+      if @game_over or @game_won
+        reset
+      else
+        @paused = !@paused
+      end
     else
       super
     end
@@ -90,6 +97,9 @@ class Game < Gosu::Window
     if @game_won
       @message.draw("YOU WON", @width / 2 - @message.text_width("YOU WON") / 2, @height / 2 - @message.height / 2, ZOrder::TEXT)
       @help.draw("PRESS SPACE TO PLAY AGAIN", @width / 2 - @help.text_width("PRESS SPACE TO PLAY AGAIN") / 2, @height / 2 + @message.height, ZOrder::TEXT)
+    end
+    if @paused
+      @help.draw("PRESS SPACE TO UNPAUSE", @width / 2 - @help.text_width("PRESS SPACE TO UNPAUSE") / 2, @height / 2 + @message.height, ZOrder::TEXT)
     end
 
     @stars.each { |star| star.draw }
