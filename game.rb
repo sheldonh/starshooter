@@ -119,11 +119,11 @@ class Game < Gosu::Window
 
   def reset
     @extra_asteroids.concat(@asteroids)
-    @asteroids.clear
-    @asteroids.concat(@extra_asteroids.pop(INITIAL_ASTEROIDS))
-    @asteroids.each do |asteroid|
+    @extra_asteroids.each do |asteroid|
       asteroid.warp(@width * 2 + rand(@width), rand(@height), rand(10) + 1)
     end
+    @asteroids.clear
+    @asteroids.concat(@extra_asteroids.pop(INITIAL_ASTEROIDS))
     @player.reset
     @game_over = false
     @game_won = false
