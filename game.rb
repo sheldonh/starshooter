@@ -20,6 +20,7 @@ class Game < Gosu::Window
 
   TOTAL_ASTEROIDS = 60
   INITIAL_ASTEROIDS = 10
+  WIN_ASTEROIDS = TOTAL_ASTEROIDS - INITIAL_ASTEROIDS
 
   def initialize
     @width = Screen::WIDTH
@@ -112,7 +113,8 @@ class Game < Gosu::Window
     @stars.each { |star| star.draw }
     @asteroids.each { |asteroid| asteroid.draw }
     @player.draw
-    @scoreboard.draw("#{@extra_asteroids.size}", @width - @scoreboard.text_width("#{@extra_asteroids.size}") - @scoreboard.height, @height - @scoreboard.height, ZOrder::TEXT)
+    scoreboard_message = "#{WIN_ASTEROIDS - @extra_asteroids.size} / #{WIN_ASTEROIDS}"
+    @scoreboard.draw(scoreboard_message, @width - @scoreboard.text_width(scoreboard_message) - @scoreboard.height, @height - @scoreboard.height, ZOrder::TEXT)
   end
 
   def reset
